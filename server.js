@@ -1,61 +1,48 @@
 // server.js
+const express = require("express")
+const cors = require("cors")
 
-const http = require('http');
+const app = express()
 
 // CORS 설정을 위한 헤더
-const headers = {
-  'Access-Control-Allow-Origin': "http://127.0.0.1:9000",
-  'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, PUT, DELETE',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+app.use(
+  cors({
+    origin: "http://127.0.0.1:5500",
+    methods: ["OPTIONS", "POST", "GET", "PUT", "DELETE"],
+    headers: "Content-Type",
+  })
+)
 
-let data = { message: '여러분 화이팅!' };
+app.use(express.text())
 
-const server = http.createServer((req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204, headers);
-    res.end();
-    return;
-  }
+let data = { message: "여러분 화이팅!" }
 
-  if (req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json', ...headers });
-    res.end(JSON.stringify(data));
-  }
+app.options("/", (req, res) => {
+  return res.send("요청 보내세요.")
+})
 
-  if (req.method === 'POST') {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString();
-    });
+app.get("/", (req, res) => {
+  console.log(data)
+  res.status(200).json(data)
+})
 
-    req.on('end', () => {
-      data.message = body;
-      res.writeHead(200, headers);
-      res.end(`받은 POST 데이터: ${body}`);
-    });
-  }
+app.post("/", (req, res) => {
+  console.log(`받은 POST 데이터: ${req.body}`)
+  data.message = req.body
+  res.status(200).send(`받은 POST 데이터: ${req.body}`)
+})
 
-  if (req.method === 'PUT') {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString();
-    });
+app.put("/", (req, res) => {
+  console.log(req.body)
+  data.message = req.body
+  res.status(200).send(`업데이트된 데이터: ${req.body}`)
+})
 
-    req.on('end', () => {
-      data.message = body;
-      res.writeHead(200, headers);
-      res.end(`업데이트된 데이터: ${body}`);
-    });
-  }
+app.delete("/", (req, res) => {
+  data = {}
+  res.status(200).send("데이터가 삭제되었습니다.")
+})
 
-  if (req.method === 'DELETE') {
-    data = {};
-    res.writeHead(200, headers);
-    res.end('데이터가 삭제되었습니다.');
-  }
-});
-
-server.listen(3000, () => {
-  console.log('서버가 http://localhost:3000/ 에서 실행 중입니다.');
-});
+app.listen(3000, () => {
+  console.log("서버가 http://localhost:3000/ 에서 실행 중입니다.")
+})
